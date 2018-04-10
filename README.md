@@ -1,2 +1,2 @@
 # Gander
-a file structure viewer
+a file format viewer
