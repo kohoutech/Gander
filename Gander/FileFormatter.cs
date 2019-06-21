@@ -21,28 +21,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.IO;
 
 namespace Gander
 {
-    public class Gander
+    public class FileFormatter
     {
-        public GanderWindow gwindow;
-        public SourceFile source;
-        public FileFormatter formatter;
+        public static Dictionary<String, FileFormatter> formatterList;
 
-        public Gander(GanderWindow _gwindow)
+        public static FileFormatter getFormatter(String extention)
         {
-            gwindow = _gwindow;
+            return formatterList[extention];
         }
 
-        public void openSourceFile(string filename)
+        public static void registerFormatter(String extension, FileFormatter formatter)
         {
-            String extension = Path.GetExtension(filename);
-            if (extension != null)
-            {
-                formatter = FileFormatter.getFormatter(extension);
-            }
+            formatterList.Add(extension, formatter);
         }
     }
 }

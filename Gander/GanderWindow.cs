@@ -1,6 +1,6 @@
 ﻿/* ----------------------------------------------------------------------------
 Gander : a file format viewer
-Copyright (C) 1998-2018  George E Greaney
+Copyright (C) 1998-2019  George E Greaney
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -32,12 +32,24 @@ namespace Gander
     public partial class GanderWindow : Form
     {
         Gander gander;
+        String currentPath;
 
         public GanderWindow()
         {
             gander = new Gander(this);
 
             InitializeComponent();
+        }
+
+//- data operations -----------------------------------------------------------
+
+        public void openFile(String filename)
+        {
+            ganderStatusLabel.Text = "Loading...";
+            gander.openSourceFile(filename);
+
+            Text = "Gander [" + filename + "]";
+            ganderStatusLabel.Text = "";
         }
 
 

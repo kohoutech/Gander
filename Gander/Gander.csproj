@@ -46,6 +46,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ENAML\EnamlData.cs" />
+    <Compile Include="FileFormatter.cs" />
     <Compile Include="Gander.cs" />
     <Compile Include="GanderWindow.cs">
       <SubType>Form</SubType>

@@ -47,7 +47,11 @@
             this.aboutHelpMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.gCanvas = new System.Windows.Forms.Panel();
             this.openFileDialog1 = new System.Windows.Forms.OpenFileDialog();
+            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.ganderStatusLabel = new System.Windows.Forms.ToolStripStatusLabel();
             this.menuStrip1.SuspendLayout();
+            this.gCanvas.SuspendLayout();
+            this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -188,6 +192,7 @@
             // gCanvas
             // 
             this.gCanvas.BackColor = System.Drawing.Color.SkyBlue;
+            this.gCanvas.Controls.Add(this.statusStrip1);
             this.gCanvas.Dock = System.Windows.Forms.DockStyle.Fill;
             this.gCanvas.Location = new System.Drawing.Point(0, 24);
             this.gCanvas.Name = "gCanvas";
@@ -197,6 +202,21 @@
             // openFileDialog1
             // 
             this.openFileDialog1.FileName = "ganderOpenFileDialog";
+            // 
+            // statusStrip1
+            // 
+            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
+            this.ganderStatusLabel});
+            this.statusStrip1.Location = new System.Drawing.Point(0, 339);
+            this.statusStrip1.Name = "statusStrip1";
+            this.statusStrip1.Size = new System.Drawing.Size(404, 22);
+            this.statusStrip1.TabIndex = 0;
+            this.statusStrip1.Text = "ganderStatusStrip";
+            // 
+            // ganderStatusLabel
+            // 
+            this.ganderStatusLabel.Name = "ganderStatusLabel";
+            this.ganderStatusLabel.Size = new System.Drawing.Size(0, 17);
             // 
             // GanderWindow
             // 
@@ -210,6 +230,10 @@
             this.Text = "Gander";
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
+            this.gCanvas.ResumeLayout(false);
+            this.gCanvas.PerformLayout();
+            this.statusStrip1.ResumeLayout(false);
+            this.statusStrip1.PerformLayout();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -235,6 +259,8 @@
         private System.Windows.Forms.Panel gCanvas;
         private System.Windows.Forms.ToolStripMenuItem manageFormatMenuItem;
         private System.Windows.Forms.OpenFileDialog openFileDialog1;
+        private System.Windows.Forms.StatusStrip statusStrip1;
+        private System.Windows.Forms.ToolStripStatusLabel ganderStatusLabel;
     }
 }
 
