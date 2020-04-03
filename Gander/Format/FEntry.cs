@@ -21,32 +21,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.IO;
 
 namespace Gander
 {
-    public class Gander
+    //base class
+    class FEntry
     {
-        public GanderWindow gwindow;
-        public SourceFile source;
-        public FileFormatter formatter;
-        public Format format;
-
-        public Gander(GanderWindow _gwindow)
-        {
-            gwindow = _gwindow;
-            formatter = new FileFormatter();
-            formatter.registerFormat(".dll", "win32exe.gos");
-        }
-
-        public void openSourceFile(string filename)
-        {
-            String extension = Path.GetExtension(filename);
-            if (extension != null)
-            {
-                format = formatter.getFormat(extension);
-                formatter.formatFile(filename, format);
-            }
-        }
     }
 }

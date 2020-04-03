@@ -1,6 +1,6 @@
 ﻿/* ----------------------------------------------------------------------------
 Gander : a file format viewer
-Copyright (C) 1998-2019  George E Greaney
+Copyright (C) 1998-2020  George E Greaney
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -69,11 +69,11 @@ namespace Gander
             //ganderOpenFileDialog.Filter = "Executable files|*.exe|DLL files|*.dll|All files|*.*";
             //fluoroOpenFileDialog.ShowDialog();
             //filename = fluoroOpenFileDialog.FileName;
-            filename = "test.dll";
+            filename = "test3.dll";
             if (filename.Length != 0)
             {
-                //currentPath = Path.GetDirectoryName(filename);
-                //openFile(filename);
+                currentPath = Path.GetDirectoryName(filename);
+                openFile(filename);
             }
         }
 
@@ -123,7 +123,7 @@ namespace Gander
 
         private void aboutHelpMenuItem_Click(object sender, EventArgs e)
         {
-            String msg = "Gander\nversion 1.0.0\n" + "\xA9 Origami Software 1998-2018\n" + "http://origami.kohoutech.com";
+            String msg = "Gander\nversion 1.0.0\n" + "\xA9 Origami Software 1998-2020\n" + "http://origami.kohoutech.com";
             MessageBox.Show(msg, "About");
         }
     }

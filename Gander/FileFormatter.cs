@@ -1,6 +1,6 @@
 ﻿/* ----------------------------------------------------------------------------
 Gander : a file format viewer
-Copyright (C) 1998-2019  George E Greaney
+Copyright (C) 1998-2020  George E Greaney
 
 This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
@@ -26,16 +26,41 @@ namespace Gander
 {
     public class FileFormatter
     {
-        public static Dictionary<String, FileFormatter> formatterList;
+        public static Dictionary<String, Format> formatList;
+        public static Dictionary<String, String> formatFileList;
 
-        public static FileFormatter getFormatter(String extention)
+        public FileFormatter()
         {
-            return formatterList[extention];
+            formatList = new Dictionary<string, Format>();
+            formatFileList = new Dictionary<string, string>();
         }
 
-        public static void registerFormatter(String extension, FileFormatter formatter)
+        public Format getFormat(String extention)
         {
-            formatterList.Add(extension, formatter);
+            Format format = null;
+            if (formatList.ContainsKey(extention))
+            {
+                format = formatList[extention];
+            }
+            else
+            {
+                String filepath = formatFileList[extention];
+                format = Format.loadFormatFile(filepath);
+                formatList[extention] = format;
+            }
+            return format;
+        }
+
+        public void registerFormat(String extension, String filepath)
+        {
+            formatFileList.Add(extension, filepath);
+        }
+
+        //- format file contents ----------------------------------------------
+
+        public void formatFile(string filename, Format format)
+        {
+            throw new NotImplementedException();
         }
     }
 }
