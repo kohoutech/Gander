@@ -21,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace Gander
 {
@@ -59,8 +60,16 @@ namespace Gander
         //- format file contents ----------------------------------------------
 
         public void formatFile(string filename, Format format)
-        {
-            throw new NotImplementedException();
+        {            
+            SourceFile src = new SourceFile(filename);
+
+            List<String> lines = new List<string>();
+            foreach (FEntry entry in format.fields)
+            {
+                entry.format(src, lines);
+            }
+
+            File.WriteAllLines("outfile.txt", lines);            
         }
     }
 }

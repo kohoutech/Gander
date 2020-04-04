@@ -21,16 +21,44 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace Gander
 {
     public class Format
     {
-        List<FEntry> fields;
+        public List<FEntry> fields;
 
+        //use hard coded fields for now
         public static Format loadFormatFile(string filepath)
         {
-            return new Format();
+            Format format = new Format();
+
+            String[] lines = File.ReadAllLines(filepath);
+            for (int i = 0; i < lines.Length; i++)
+            {
+                String line = lines[i];
+                int pos = line.IndexOf(':');
+                String ftype = line.Substring(0, pos).Trim();
+                String fparams = line.Substring(pos+1).Trim();
+                switch (ftype)
+                {
+                    case "INT":
+                        IntField f = IntField.loadEntry(fparams);
+                        format.fields.Add(f);
+                        break;
+
+                    default:
+                        break;
+                }
+            }
+
+            return format;
+        }
+
+        public Format()
+        {
+            fields = new List<FEntry>();
         }
     }
 }

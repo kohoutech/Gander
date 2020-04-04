@@ -31,10 +31,10 @@ namespace Gander
         uint srclen;
         uint srcpos;
 
-        public SourceFile(String se1name)
+        public SourceFile(String fname)
         {
 
-            srcbuf = File.ReadAllBytes(se1name);
+            srcbuf = File.ReadAllBytes(fname);
             srclen = (uint)srcbuf.Length;
             srcpos = 0;
         }

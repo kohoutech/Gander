@@ -25,7 +25,48 @@ using System.Text;
 namespace Gander
 {
     //base class
-    class FEntry
+    public class FEntry
     {
+        public virtual void format(SourceFile src, List<string> lines)
+        {
+
+        }
+    }
+
+    public class IntField : FEntry
+    {
+        public String name;
+        public int width;
+        public long val;
+
+        public IntField(String _name, int _width)
+        {
+            name = _name;
+            width = _width;
+        }
+
+        public static IntField loadEntry(string fparams)
+        {
+            int pos = fparams.IndexOf(':');
+            String name = fparams.Substring(0, pos).Trim();
+            //pos = fparams.IndexOf(':', pos + 1);
+            int width = Int32.Parse(fparams.Substring(pos + 1).Trim());
+            IntField f = new IntField(name, width);
+            return f;
+        }
+
+        public override void format(SourceFile src, List<string> lines)
+        {
+            string s = src.getPos().ToString("X6");
+            val = 0;
+            for (int i = 0; i < width; i++)
+            {
+                uint v = src.getOne();
+                s = s + ':' + v.ToString("X2");
+                val = (v << (i * 8)) + val;
+            }
+            s = s + "\t\t//" + name;
+            lines.Add(s);
+        }
     }
 }
