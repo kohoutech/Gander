@@ -66,7 +66,7 @@ namespace Gander
             List<String> lines = new List<string>();
             foreach (FEntry entry in format.fields)
             {
-                entry.format(src, lines);
+                entry.formatEntry(src, lines);
             }
 
             File.WriteAllLines("outfile.txt", lines);            

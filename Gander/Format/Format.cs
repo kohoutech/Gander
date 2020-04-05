@@ -28,6 +28,7 @@ namespace Gander
     public class Format
     {
         public List<FEntry> fields;
+        public Dictionary<String, FEntry> entryTable;
 
         //use hard coded fields for now
         public static Format loadFormatFile(string filepath)
@@ -41,16 +42,27 @@ namespace Gander
                 int pos = line.IndexOf(':');
                 String ftype = line.Substring(0, pos).Trim();
                 String fparams = line.Substring(pos+1).Trim();
+                FEntry f = null;
                 switch (ftype)
                 {
                     case "INT":
-                        IntField f = IntField.loadEntry(fparams);
-                        format.fields.Add(f);
+                        f = IntField.loadEntry(format, fparams);
                         break;
+
+                    case "FIXEDBUF":
+                        f = FixedBuffer.loadEntry(format, fparams);
+                        break;
+
+                    case "VARBUF":
+                        f = VariableBuffer.loadEntry(format, fparams);
+                        break;
+
 
                     default:
                         break;
                 }
+                format.fields.Add(f);
+
             }
 
             return format;
@@ -59,6 +71,23 @@ namespace Gander
         public Format()
         {
             fields = new List<FEntry>();
+            entryTable = new Dictionary<string, FEntry>();
         }
+
+        public void storeEntry(string name, IntField f)
+        {
+            entryTable[name] = f;
+        }
+
+        public FEntry getEntry(String name)
+        {
+            FEntry entry = null;
+            if (entryTable.ContainsKey(name))
+            {
+                entry = entryTable[name];
+            }
+            return entry;
+        }
+
     }
 }
