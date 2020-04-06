@@ -37,7 +37,6 @@ namespace Gander
 
         public virtual void formatEntry(SourceFile src, List<string> lines)
         {
-
         }
 
         public uint getValue()
@@ -162,6 +161,52 @@ namespace Gander
                     count = 0;
                 }
             }
+            lines.Add(s);
+        }
+    }
+
+        //-----------------------------------------------------
+
+    public class FixedString : FEntry
+    {
+        String name;
+        String str;
+        int width;
+
+        public FixedString(Format _format, String _name, int _width)
+            : base(_format)
+        {
+            name = _name;
+            width = _width;
+        }
+
+        public static FixedString loadEntry(Format _format, string fparams)
+        {
+            int pos = fparams.IndexOf(':');
+            String name = fparams.Substring(0, pos).Trim();
+            int width = Int32.Parse(fparams.Substring(pos + 1).Trim());
+            FixedString f = new FixedString(_format, name, width);
+            _format.storeEntry(name, f);
+            return f;
+        }
+
+        public override void formatEntry(SourceFile src, List<string> lines)
+        {
+            string s = src.getPos().ToString("X6");
+            str = "";
+            for (int i = 0; i < width; i++)
+            {
+                uint v = src.getOne();
+                if (0x020 <= v && v <= 0x7f)
+                {
+                    str = str + (char)v;
+                }
+                else
+                {
+                    str = str + '\\' + v.ToString("X2");
+                }
+            }
+            s = s + ":\"" + str + "\"\t\t//" + name;
             lines.Add(s);
         }
     }

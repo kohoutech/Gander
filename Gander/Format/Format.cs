@@ -49,6 +49,10 @@ namespace Gander
                         f = IntField.loadEntry(format, fparams);
                         break;
 
+                    case "FIXEDSTR":
+                        f = FixedString.loadEntry(format, fparams);
+                        break;
+
                     case "FIXEDBUF":
                         f = FixedBuffer.loadEntry(format, fparams);
                         break;
@@ -74,7 +78,7 @@ namespace Gander
             entryTable = new Dictionary<string, FEntry>();
         }
 
-        public void storeEntry(string name, IntField f)
+        public void storeEntry(string name, FEntry f)
         {
             entryTable[name] = f;
         }
