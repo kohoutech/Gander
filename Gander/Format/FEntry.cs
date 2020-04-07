@@ -45,6 +45,29 @@ namespace Gander
         }
     }
 
+    public class FStruct : FEntry
+    {
+        public String name;
+        public Dictionary<String, FEntry> fields;
+        
+        public FStruct(Format _format, String _name)
+            : base(_format)
+        {
+            name = _name;
+            fields = new Dictionary<string, FEntry>();
+        }
+
+        public FEntry getField(String name)
+        {
+            FEntry field = null;
+            if (fields.ContainsKey(name))
+            {
+                field = fields[name];
+            }
+            return field;
+        }
+    }
+
     //-----------------------------------------------------
     
     public class IntField : FEntry
@@ -59,13 +82,10 @@ namespace Gander
             width = _width;
         }
 
-        public static IntField loadEntry(Format _format, string fparams)
+        public static IntField loadEntry(Format _format, string name, string fparams)
         {            
-            int pos = fparams.IndexOf(':');
-            String name = fparams.Substring(0, pos).Trim();
-            int width = Int32.Parse(fparams.Substring(pos + 1).Trim());
+            int width = Int32.Parse(fparams.Trim());
             IntField f = new IntField(_format, name, width);
-            _format.storeEntry(name, f);
             return f;
         }
 
@@ -88,18 +108,20 @@ namespace Gander
 
     public class FixedBuffer : FEntry
     {
+        public string name;
         public int width;
 
-        public FixedBuffer(Format _format, int _width)
+        public FixedBuffer(Format _format, string _name, int _width)
             : base(_format)
         {
+            name = _name;
             width = _width;
         }
 
-        public static FixedBuffer loadEntry(Format _format, string fparams)
+        public static FixedBuffer loadEntry(Format _format, string name, string fparams)
         {
             int width = Int32.Parse(fparams.Trim());
-            FixedBuffer f = new FixedBuffer(_format, width);
+            FixedBuffer f = new FixedBuffer(_format, name, width);
             return f;
         }
 
@@ -127,19 +149,21 @@ namespace Gander
 
     public class VariableBuffer : FEntry
     {
+        public string name;
         public int width;
         public FEntry delim;
 
-        public VariableBuffer(Format _format, FEntry _delim)
+        public VariableBuffer(Format _format, string _name, FEntry _delim)
             : base(_format)
         {
+            name = _name;
             delim = _delim;
         }
 
-        public static VariableBuffer loadEntry(Format _format, string fparams)
+        public static VariableBuffer loadEntry(Format format, string name, string fparams)
         {
-            FEntry _delim = _format.getEntry(fparams.Trim());
-            VariableBuffer f = new VariableBuffer(_format, _delim);
+            FEntry delim = format.getEntry(fparams.Trim());
+            VariableBuffer f = new VariableBuffer(format, name, delim);
             return f;
         }
 
@@ -180,13 +204,10 @@ namespace Gander
             width = _width;
         }
 
-        public static FixedString loadEntry(Format _format, string fparams)
+        public static FixedString loadEntry(Format _format, string name, string fparams)
         {
-            int pos = fparams.IndexOf(':');
-            String name = fparams.Substring(0, pos).Trim();
-            int width = Int32.Parse(fparams.Substring(pos + 1).Trim());
+            int width = Int32.Parse(fparams.Trim());
             FixedString f = new FixedString(_format, name, width);
-            _format.storeEntry(name, f);
             return f;
         }
 

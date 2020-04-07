@@ -22,6 +22,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.IO;
+using Origami.ENAML;
 
 namespace Gander
 {
@@ -35,38 +36,48 @@ namespace Gander
         {
             Format format = new Format();
 
-            String[] lines = File.ReadAllLines(filepath);
-            for (int i = 0; i < lines.Length; i++)
+            //String[] lines = File.ReadAllLines(filepath);
+            EnamlData gosling = EnamlData.loadFromFile(filepath);
+
+            string gosVersion = gosling.getStringValue("Gosling.version", "");
+            List<String> structs = gosling.getPathKeys("structs");
+            foreach (String structname in structs)
             {
-                String line = lines[i];
-                int pos = line.IndexOf(':');
-                String ftype = line.Substring(0, pos).Trim();
-                String fparams = line.Substring(pos+1).Trim();
-                FEntry f = null;
-                switch (ftype)
+                FStruct fs = new FStruct(format, structname);
+                List<String> fields = gosling.getPathKeys("structs." + structname);
+                String fieldpath = "structs." + structname + ".";
+                foreach (String fieldname in fields)
                 {
-                    case "INT":
-                        f = IntField.loadEntry(format, fparams);
-                        break;
+                    FEntry f = null;
+                    String fline = gosling.getStringValue(fieldpath + fieldname, "");
+                    int pos = fline.IndexOf(':');
+                    String ftype = (pos != -1) ? fline.Substring(0, pos).Trim() : fline;
+                    String fparams = (pos != -1) ? fline.Substring(pos + 1).Trim() : "";
+                    ftype = ftype.ToLower();
+                    switch (ftype)
+                    {
+                        case "int":
+                            f = IntField.loadEntry(format, fieldname, fparams);
+                            break;
 
-                    case "FIXEDSTR":
-                        f = FixedString.loadEntry(format, fparams);
-                        break;
+                        case "fixedstr":
+                            f = FixedString.loadEntry(format, fieldname, fparams);
+                            break;
 
-                    case "FIXEDBUF":
-                        f = FixedBuffer.loadEntry(format, fparams);
-                        break;
+                        case "fixedbuf":
+                            f = FixedBuffer.loadEntry(format, fieldname, fparams);
+                            break;
 
-                    case "VARBUF":
-                        f = VariableBuffer.loadEntry(format, fparams);
-                        break;
+                        case "varbuf":
+                            f = VariableBuffer.loadEntry(format, fieldname, fparams);
+                            break;
 
-
-                    default:
-                        break;
+                        default:
+                            break;
+                    }
+                    fs.fields.Add(fieldname, f);
                 }
-                format.fields.Add(f);
-
+                format.entryTable.Add(structname, fs);
             }
 
             return format;
@@ -78,11 +89,6 @@ namespace Gander
             entryTable = new Dictionary<string, FEntry>();
         }
 
-        public void storeEntry(string name, FEntry f)
-        {
-            entryTable[name] = f;
-        }
-
         public FEntry getEntry(String name)
         {
             FEntry entry = null;
@@ -92,6 +98,5 @@ namespace Gander
             }
             return entry;
         }
-
     }
 }
