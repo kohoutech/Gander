@@ -28,7 +28,6 @@ namespace Gander
     public class FEntry
     {
         public Format format;
-        public uint value;
 
         public FEntry(Format _format)
         {
@@ -38,6 +37,34 @@ namespace Gander
         public virtual void formatEntry(SourceFile src, List<string> lines)
         {
         }
+    }
+
+    //-----------------------------------------------------
+    
+    public class FStruct : FEntry
+    {
+        public String name;
+        public SymbolTable fields;
+        
+        public FStruct(Format _format, String _name)
+            : base(_format)
+        {
+            name = _name;
+            fields = new SymbolTable(format.symTable);
+        }
+    }
+
+    //-----------------------------------------------------
+
+    public class FField : FEntry
+    {
+        public FStruct structure;
+        public uint value;
+
+        public FField(FStruct _struct) : base(_struct.format)
+        {
+            structure = _struct;
+        }
 
         public uint getValue()
         {
@@ -45,47 +72,24 @@ namespace Gander
         }
     }
 
-    public class FStruct : FEntry
-    {
-        public String name;
-        public Dictionary<String, FEntry> fields;
-        
-        public FStruct(Format _format, String _name)
-            : base(_format)
-        {
-            name = _name;
-            fields = new Dictionary<string, FEntry>();
-        }
-
-        public FEntry getField(String name)
-        {
-            FEntry field = null;
-            if (fields.ContainsKey(name))
-            {
-                field = fields[name];
-            }
-            return field;
-        }
-    }
-
     //-----------------------------------------------------
-    
-    public class IntField : FEntry
+
+    public class IntField : FField
     {
         public String name;
         public int width;
 
-        public IntField(Format _format, String _name, int _width)
-            : base(_format)
+        public IntField(FStruct _struct, String _name, int _width)
+            : base(_struct)
         {
             name = _name;
             width = _width;
         }
 
-        public static IntField loadEntry(Format _format, string name, string fparams)
+        public static IntField loadEntry(FStruct _struct, string name, string fparams)
         {            
             int width = Int32.Parse(fparams.Trim());
-            IntField f = new IntField(_format, name, width);
+            IntField f = new IntField(_struct, name, width);
             return f;
         }
 
@@ -106,22 +110,22 @@ namespace Gander
 
     //-----------------------------------------------------
 
-    public class FixedBuffer : FEntry
+    public class FixedBuffer : FField
     {
         public string name;
         public int width;
 
-        public FixedBuffer(Format _format, string _name, int _width)
-            : base(_format)
+        public FixedBuffer(FStruct _struct, string _name, int _width)
+            : base(_struct)
         {
             name = _name;
             width = _width;
         }
 
-        public static FixedBuffer loadEntry(Format _format, string name, string fparams)
+        public static FixedBuffer loadEntry(FStruct _struct, string name, string fparams)
         {
             int width = Int32.Parse(fparams.Trim());
-            FixedBuffer f = new FixedBuffer(_format, name, width);
+            FixedBuffer f = new FixedBuffer(_struct, name, width);
             return f;
         }
 
@@ -147,23 +151,23 @@ namespace Gander
 
     //-----------------------------------------------------
 
-    public class VariableBuffer : FEntry
+    public class VariableBuffer : FField
     {
         public string name;
         public int width;
-        public FEntry delim;
+        public FField delim;
 
-        public VariableBuffer(Format _format, string _name, FEntry _delim)
-            : base(_format)
+        public VariableBuffer(FStruct _struct, string _name, FField _delim)
+            : base(_struct)
         {
             name = _name;
             delim = _delim;
         }
 
-        public static VariableBuffer loadEntry(Format format, string name, string fparams)
+        public static VariableBuffer loadEntry(FStruct _struct, string name, string fparams)
         {
-            FEntry delim = format.getEntry(fparams.Trim());
-            VariableBuffer f = new VariableBuffer(format, name, delim);
+            FField delim = (FField)_struct.fields.getEntry(fparams.Trim());
+            VariableBuffer f = new VariableBuffer(_struct, name, delim);
             return f;
         }
 
@@ -191,23 +195,23 @@ namespace Gander
 
         //-----------------------------------------------------
 
-    public class FixedString : FEntry
+    public class FixedString : FField
     {
         String name;
         String str;
         int width;
 
-        public FixedString(Format _format, String _name, int _width)
-            : base(_format)
+        public FixedString(FStruct _struct, String _name, int _width)
+            : base(_struct)
         {
             name = _name;
             width = _width;
         }
 
-        public static FixedString loadEntry(Format _format, string name, string fparams)
+        public static FixedString loadEntry(FStruct _struct, string name, string fparams)
         {
             int width = Int32.Parse(fparams.Trim());
-            FixedString f = new FixedString(_format, name, width);
+            FixedString f = new FixedString(_struct, name, width);
             return f;
         }
 

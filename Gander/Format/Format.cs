@@ -29,17 +29,18 @@ namespace Gander
     public class Format
     {
         public List<FEntry> fields;
-        public Dictionary<String, FEntry> entryTable;
+        public SymbolTable symTable;
 
         //use hard coded fields for now
         public static Format loadFormatFile(string filepath)
         {
             Format format = new Format();
 
-            //String[] lines = File.ReadAllLines(filepath);
             EnamlData gosling = EnamlData.loadFromFile(filepath);
 
             string gosVersion = gosling.getStringValue("Gosling.version", "");
+
+            //read in structure data
             List<String> structs = gosling.getPathKeys("structs");
             foreach (String structname in structs)
             {
@@ -57,27 +58,27 @@ namespace Gander
                     switch (ftype)
                     {
                         case "int":
-                            f = IntField.loadEntry(format, fieldname, fparams);
+                            f = IntField.loadEntry(fs, fieldname, fparams);
                             break;
 
                         case "fixedstr":
-                            f = FixedString.loadEntry(format, fieldname, fparams);
+                            f = FixedString.loadEntry(fs, fieldname, fparams);
                             break;
 
                         case "fixedbuf":
-                            f = FixedBuffer.loadEntry(format, fieldname, fparams);
+                            f = FixedBuffer.loadEntry(fs, fieldname, fparams);
                             break;
 
                         case "varbuf":
-                            f = VariableBuffer.loadEntry(format, fieldname, fparams);
+                            f = VariableBuffer.loadEntry(fs, fieldname, fparams);
                             break;
 
                         default:
                             break;
                     }
-                    fs.fields.Add(fieldname, f);
+                    fs.fields.addEntry(fieldname, f);
                 }
-                format.entryTable.Add(structname, fs);
+                format.symTable.addEntry(structname, fs);
             }
 
             return format;
@@ -86,15 +87,38 @@ namespace Gander
         public Format()
         {
             fields = new List<FEntry>();
-            entryTable = new Dictionary<string, FEntry>();
+            symTable = new SymbolTable(null);
+        }
+    }
+
+    //-------------------------------------------------------------------------
+
+    public class SymbolTable
+    {
+        Dictionary<String, FEntry> entries;
+        SymbolTable parent;
+
+        public SymbolTable(SymbolTable _parent)
+        {
+            parent = _parent;
+            entries = new Dictionary<string, FEntry>();
+        }
+
+        public void addEntry(String name, FEntry entry)
+        {
+            entries[name] = entry;
         }
 
         public FEntry getEntry(String name)
         {
             FEntry entry = null;
-            if (entryTable.ContainsKey(name))
+            if (entries.ContainsKey(name))
             {
-                entry = entryTable[name];
+                entry = entries[name];
+            }
+            if (entry == null && parent != null)
+            {
+                entry = parent.getEntry(name);          //follow sym tbl chain up to root
             }
             return entry;
         }
