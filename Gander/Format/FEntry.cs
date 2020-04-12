@@ -44,13 +44,43 @@ namespace Gander
     public class FStruct : FEntry
     {
         public String name;
-        public SymbolTable fields;
+        public List<FEntry> fields;
+        public SymbolTable symTable;
         
         public FStruct(Format _format, String _name)
             : base(_format)
         {
             name = _name;
-            fields = new SymbolTable(format.symTable);
+            fields = new List<FEntry>();
+            symTable = new SymbolTable(format.structs);
+        }
+
+        public override void formatEntry(SourceFile src, List<string> lines)
+        {
+            foreach (FEntry field in fields)
+            {
+                field.formatEntry(src, lines);
+            }
+        }
+    }
+
+    public class StructField : FEntry
+    {
+        public String name;
+        public FStruct ftype;
+
+        public StructField(Format _format, String _name, FStruct _ftype)
+            : base(_format)
+        {
+            name = _name;
+            ftype = _ftype;
+        }
+
+        public override void formatEntry(SourceFile src, List<string> lines)
+        {
+            lines.Add("");
+            lines.Add("//" + name);
+            ftype.formatEntry(src, lines);
         }
     }
 
@@ -86,9 +116,9 @@ namespace Gander
             width = _width;
         }
 
-        public static IntField loadEntry(FStruct _struct, string name, string fparams)
+        public static IntField loadEntry(FStruct _struct, string name, List<string> fparams)
         {            
-            int width = Int32.Parse(fparams.Trim());
+            int width = Int32.Parse(fparams[1].Trim());
             IntField f = new IntField(_struct, name, width);
             return f;
         }
@@ -122,9 +152,9 @@ namespace Gander
             width = _width;
         }
 
-        public static FixedBuffer loadEntry(FStruct _struct, string name, string fparams)
+        public static FixedBuffer loadEntry(FStruct _struct, string name, List<string> fparams)
         {
-            int width = Int32.Parse(fparams.Trim());
+            int width = Int32.Parse(fparams[1].Trim());
             FixedBuffer f = new FixedBuffer(_struct, name, width);
             return f;
         }
@@ -164,9 +194,9 @@ namespace Gander
             delim = _delim;
         }
 
-        public static VariableBuffer loadEntry(FStruct _struct, string name, string fparams)
+        public static VariableBuffer loadEntry(FStruct _struct, string name, List<string> fparams)
         {
-            FField delim = (FField)_struct.fields.getEntry(fparams.Trim());
+            FField delim = (FField)_struct.symTable.getEntry(fparams[1].Trim());
             VariableBuffer f = new VariableBuffer(_struct, name, delim);
             return f;
         }
@@ -208,9 +238,9 @@ namespace Gander
             width = _width;
         }
 
-        public static FixedString loadEntry(FStruct _struct, string name, string fparams)
+        public static FixedString loadEntry(FStruct _struct, string name, List<string> fparams)
         {
-            int width = Int32.Parse(fparams.Trim());
+            int width = Int32.Parse(fparams[1].Trim());
             FixedString f = new FixedString(_struct, name, width);
             return f;
         }
@@ -233,6 +263,44 @@ namespace Gander
             }
             s = s + ":\"" + str + "\"\t\t//" + name;
             lines.Add(s);
+        }
+    }
+
+    //-------------------------------------------------------------------------
+
+    public class FixedTable : FEntry
+    {
+        public string name;
+        public FField delim;
+        public FStruct struc;
+
+        public FixedTable(Format _format, String _name, FField _delim, FStruct _struc)
+            : base(_format)
+        {
+            name = _name;
+            delim = _delim;
+            struc = _struc;
+        }
+
+        public static FixedTable loadEntry(Format format, String name, List<string> parms)
+        {
+            FField delim = (FField)format.vars.getEntry(parms[1].Trim());
+            FStruct fs = (FStruct)format.structs.getEntry(parms[2].Trim());
+            FixedTable f = new FixedTable(format, name, delim, fs);
+            return f;            
+        }
+
+        public override void formatEntry(SourceFile src, List<string> lines)
+        {
+            lines.Add("");
+            lines.Add("//" + name);
+            uint count = delim.value;
+            for (int i = 0; i < count; i++)
+            {
+                if (i > 0) { lines.Add(""); }
+                lines.Add("[" + i + "]");
+                struc.formatEntry(src, lines);
+            }
         }
     }
 

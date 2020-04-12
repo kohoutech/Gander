@@ -64,7 +64,7 @@ namespace Gander
             SourceFile src = new SourceFile(filename);
 
             List<String> lines = new List<string>();
-            foreach (FEntry entry in format.fields)
+            foreach (FEntry entry in format.entries)
             {
                 entry.formatEntry(src, lines);
             }

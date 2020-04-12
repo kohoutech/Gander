@@ -28,8 +28,9 @@ namespace Gander
 {
     public class Format
     {
-        public List<FEntry> fields;
-        public SymbolTable symTable;
+        public List<FEntry> entries;
+        public SymbolTable structs;
+        public SymbolTable vars;
 
         //use hard coded fields for now
         public static Format loadFormatFile(string filepath)
@@ -51,43 +52,87 @@ namespace Gander
                 {
                     FEntry f = null;
                     String fline = gosling.getStringValue(fieldpath + fieldname, "");
-                    int pos = fline.IndexOf(':');
-                    String ftype = (pos != -1) ? fline.Substring(0, pos).Trim() : fline;
-                    String fparams = (pos != -1) ? fline.Substring(pos + 1).Trim() : "";
-                    ftype = ftype.ToLower();
+                    List<String> parms = getParams(fline);
+                    String ftype = parms[0].ToLower();
                     switch (ftype)
                     {
                         case "int":
-                            f = IntField.loadEntry(fs, fieldname, fparams);
+                            f = IntField.loadEntry(fs, fieldname, parms);
                             break;
 
                         case "fixedstr":
-                            f = FixedString.loadEntry(fs, fieldname, fparams);
+                            f = FixedString.loadEntry(fs, fieldname, parms);
                             break;
 
                         case "fixedbuf":
-                            f = FixedBuffer.loadEntry(fs, fieldname, fparams);
+                            f = FixedBuffer.loadEntry(fs, fieldname, parms);
                             break;
 
                         case "varbuf":
-                            f = VariableBuffer.loadEntry(fs, fieldname, fparams);
+                            f = VariableBuffer.loadEntry(fs, fieldname, parms);
                             break;
 
                         default:
                             break;
                     }
-                    fs.fields.addEntry(fieldname, f);
+                    fs.fields.Add(f);
+                    fs.symTable.addEntry(fieldname, f);
                 }
-                format.symTable.addEntry(structname, fs);
+                format.structs.addEntry(structname, fs);
+            }
+
+            //read in file structure data
+            List<String> fstructs = gosling.getPathKeys("file");
+            foreach (String fstructname in fstructs)
+            {
+                String fline = gosling.getStringValue("file." + fstructname, "").Trim();
+                List<String> parms = getParams(fline);
+                //String ftype = parms[0];
+                FEntry fs = format.structs.getEntry(parms[0]);
+                FEntry f = null;
+                if (fs != null)
+                {
+                    f = new StructField(format, fstructname, (FStruct)fs);
+                }
+                else
+                {
+                    switch (parms[0])
+                    {
+                        case "fixedtable":
+                            f = FixedTable.loadEntry(format, fstructname, parms);                            
+                            break;
+
+                        default:
+                            break;
+                    }
+                }
+                format.entries.Add(f);
+                format.vars.addEntry(fstructname, f);
             }
 
             return format;
         }
 
+        public static List<String> getParams(string line)
+        {
+            List<String> parms = new List<String>();
+            while (line.Length != 0)
+            {
+                int pos = line.IndexOf(':');
+                String parm = (pos != -1) ? line.Substring(0, pos).Trim() : line;
+                parms.Add(parm);
+                line = (pos != -1) ? line.Substring(pos + 1).Trim() : "";
+            }
+            return parms;
+        }
+
+        //---------------------------------------------------------------------
+
         public Format()
         {
-            fields = new List<FEntry>();
-            symTable = new SymbolTable(null);
+            entries = new List<FEntry>();
+            structs = new SymbolTable(null);
+            vars = new SymbolTable(null);
         }
     }
 
@@ -112,13 +157,21 @@ namespace Gander
         public FEntry getEntry(String name)
         {
             FEntry entry = null;
-            if (entries.ContainsKey(name))
+            int pos = name.IndexOf('.');
+            String start = (pos != -1) ? name.Substring(0, pos).Trim() : name;
+            if (entries.ContainsKey(start))
             {
-                entry = entries[name];
+                entry = entries[start];
             }
             if (entry == null && parent != null)
             {
-                entry = parent.getEntry(name);          //follow sym tbl chain up to root
+                entry = parent.getEntry(start);          //follow sym tbl chain up to root
+            }
+            while (pos != -1)
+            {
+                name = name.Substring(pos + 1);
+                entry = ((StructField)entry).ftype.symTable.getEntry(name);
+                pos = name.IndexOf('.');
             }
             return entry;
         }
