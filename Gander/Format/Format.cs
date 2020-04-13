@@ -31,6 +31,7 @@ namespace Gander
         public List<FEntry> entries;
         public SymbolTable structs;
         public SymbolTable vars;
+        public FStruct fyle;
 
         //use hard coded fields for now
         public static Format loadFormatFile(string filepath)
@@ -82,6 +83,7 @@ namespace Gander
             }
 
             //read in file structure data
+            format.fyle = new FStruct(format, "file");
             List<String> fstructs = gosling.getPathKeys("file");
             foreach (String fstructname in fstructs)
             {
@@ -98,8 +100,16 @@ namespace Gander
                 {
                     switch (parms[0])
                     {
-                        case "fixedtable":
-                            f = FixedTable.loadEntry(format, fstructname, parms);                            
+                        case "vartable":
+                            f = VariableTable.loadEntry(format.fyle, fstructname, parms);                            
+                            break;
+
+                        case "varbuf":
+                            f = VariableBuffer.loadEntry(format.fyle, fstructname, parms);
+                            break;
+
+                        case "sizebuftable":
+                            f = SizeBufferTable.loadEntry(format.fyle, fstructname, parms);
                             break;
 
                         default:
@@ -159,6 +169,13 @@ namespace Gander
             FEntry entry = null;
             int pos = name.IndexOf('.');
             String start = (pos != -1) ? name.Substring(0, pos).Trim() : name;
+            int index = -1;
+            if (start.EndsWith("]"))
+            {
+                int indexpos = start.IndexOf('[');
+                String indexstr = start.Substring(indexpos + 1, start.Length - indexpos - 2);
+                start = start.Substring(0, indexpos);
+            }
             if (entries.ContainsKey(start))
             {
                 entry = entries[start];

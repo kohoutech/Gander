@@ -69,7 +69,7 @@ namespace Gander
             //ganderOpenFileDialog.Filter = "Executable files|*.exe|DLL files|*.dll|All files|*.*";
             //fluoroOpenFileDialog.ShowDialog();
             //filename = fluoroOpenFileDialog.FileName;
-            filename = "test3.dll";
+            filename = "test4.dll";
             if (filename.Length != 0)
             {
                 currentPath = Path.GetDirectoryName(filename);

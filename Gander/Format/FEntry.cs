@@ -185,9 +185,9 @@ namespace Gander
     {
         public string name;
         public int width;
-        public FField delim;
+        public String delim;
 
-        public VariableBuffer(FStruct _struct, string _name, FField _delim)
+        public VariableBuffer(FStruct _struct, string _name, String _delim)
             : base(_struct)
         {
             name = _name;
@@ -196,15 +196,16 @@ namespace Gander
 
         public static VariableBuffer loadEntry(FStruct _struct, string name, List<string> fparams)
         {
-            FField delim = (FField)_struct.symTable.getEntry(fparams[1].Trim());
-            VariableBuffer f = new VariableBuffer(_struct, name, delim);
+            String _delim = fparams[1].Trim();
+            VariableBuffer f = new VariableBuffer(_struct, name, _delim);
             return f;
         }
 
         public override void formatEntry(SourceFile src, List<string> lines)
         {
             uint pos = src.getPos();
-            uint width = delim.getValue() - pos;
+            FField delimf = (FField)format.vars.getEntry(delim);
+            uint width = delimf.getValue() - pos;
             string s = pos.ToString("X6");
             int count = 0;
             for (int i = 1; i <= width; i++)
@@ -268,25 +269,25 @@ namespace Gander
 
     //-------------------------------------------------------------------------
 
-    public class FixedTable : FEntry
+    public class VariableTable : FField
     {
         public string name;
-        public FField delim;
-        public FStruct struc;
+        public String delim;
+        public FStruct fs;
 
-        public FixedTable(Format _format, String _name, FField _delim, FStruct _struc)
-            : base(_format)
+        public VariableTable(FStruct _struc, String _name, String _delim, FStruct _fs)
+            : base(_struc)
         {
             name = _name;
             delim = _delim;
-            struc = _struc;
+            fs = _fs;
         }
 
-        public static FixedTable loadEntry(Format format, String name, List<string> parms)
+        public static VariableTable loadEntry(FStruct _struc, String name, List<string> parms)
         {
-            FField delim = (FField)format.vars.getEntry(parms[1].Trim());
-            FStruct fs = (FStruct)format.structs.getEntry(parms[2].Trim());
-            FixedTable f = new FixedTable(format, name, delim, fs);
+            String delim = parms[1].Trim();
+            FStruct fs = (FStruct)_struc.format.structs.getEntry(parms[2].Trim());
+            VariableTable f = new VariableTable(_struc, name, delim, fs);
             return f;            
         }
 
@@ -294,14 +295,41 @@ namespace Gander
         {
             lines.Add("");
             lines.Add("//" + name);
-            uint count = delim.value;
+            FField delimf = (FField)structure.format.vars.getEntry(delim);
+            uint count = delimf.value;
             for (int i = 0; i < count; i++)
             {
                 if (i > 0) { lines.Add(""); }
                 lines.Add("[" + i + "]");
-                struc.formatEntry(src, lines);
+                fs.formatEntry(src, lines);
             }
         }
     }
 
+    //-------------------------------------------------------------------------
+
+    public class SizeBufferTable : FField
+    {
+        public string name;
+        public String delim;
+
+        public SizeBufferTable(FStruct _struc, String _name, String _delim)
+            : base(_struc)
+        {
+            name = _name;
+            delim = _delim;            
+        }
+
+        public static SizeBufferTable loadEntry(FStruct _struc, String name, List<string> parms)
+        {
+            String delim = parms[1].Trim();
+            SizeBufferTable f = new SizeBufferTable(_struc, name, delim);
+            return f;
+        }
+
+        public override void formatEntry(SourceFile src, List<string> lines)
+        {
+        }
+    }
+    
 }
