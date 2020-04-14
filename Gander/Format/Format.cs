@@ -51,31 +51,9 @@ namespace Gander
                 String fieldpath = "structs." + structname + ".";
                 foreach (String fieldname in fields)
                 {
-                    FEntry f = null;
                     String fline = gosling.getStringValue(fieldpath + fieldname, "");
                     List<String> parms = getParams(fline);
-                    String ftype = parms[0].ToLower();
-                    switch (ftype)
-                    {
-                        case "int":
-                            f = IntField.loadEntry(fs, fieldname, parms);
-                            break;
-
-                        case "fixedstr":
-                            f = FixedString.loadEntry(fs, fieldname, parms);
-                            break;
-
-                        case "fixedbuf":
-                            f = FixedBuffer.loadEntry(fs, fieldname, parms);
-                            break;
-
-                        case "varbuf":
-                            f = VariableBuffer.loadEntry(fs, fieldname, parms);
-                            break;
-
-                        default:
-                            break;
-                    }
+                    FField f = loadField(fs, fieldname, parms);
                     fs.fields.Add(f);
                     fs.symTable.addEntry(fieldname, f);
                 }
@@ -84,40 +62,14 @@ namespace Gander
 
             //read in file structure data
             format.fyle = new FStruct(format, "file");
-            List<String> fstructs = gosling.getPathKeys("file");
-            foreach (String fstructname in fstructs)
+            List<String> ffields = gosling.getPathKeys("file");
+            foreach (String fieldname in ffields)
             {
-                String fline = gosling.getStringValue("file." + fstructname, "").Trim();
+                String fline = gosling.getStringValue("file." + fieldname, "").Trim();
                 List<String> parms = getParams(fline);
-                //String ftype = parms[0];
-                FEntry fs = format.structs.getEntry(parms[0]);
-                FEntry f = null;
-                if (fs != null)
-                {
-                    f = new StructField(format, fstructname, (FStruct)fs);
-                }
-                else
-                {
-                    switch (parms[0])
-                    {
-                        case "vartable":
-                            f = VariableTable.loadEntry(format.fyle, fstructname, parms);                            
-                            break;
-
-                        case "varbuf":
-                            f = VariableBuffer.loadEntry(format.fyle, fstructname, parms);
-                            break;
-
-                        case "sizebuftable":
-                            f = SizeBufferTable.loadEntry(format.fyle, fstructname, parms);
-                            break;
-
-                        default:
-                            break;
-                    }
-                }
-                format.entries.Add(f);
-                format.vars.addEntry(fstructname, f);
+                FField f = loadField(format.fyle, fieldname, parms);
+                format.fyle.fields.Add(f);
+                format.fyle.symTable.addEntry(fieldname, f);
             }
 
             return format;
@@ -134,6 +86,51 @@ namespace Gander
                 line = (pos != -1) ? line.Substring(pos + 1).Trim() : "";
             }
             return parms;
+        }
+
+        public static FField loadField(FStruct fs, String fname, List<String> parms)
+        {
+            FField f = null;
+
+            //check for loaded struct
+            FEntry ftype = fs.format.structs.getEntry(parms[0].ToLower());
+            if (ftype != null)
+            {
+                f = new StructField(fs, fname, (FStruct)ftype);
+            }
+
+            //else is a predefined struct
+            else switch (parms[0])
+                {
+                    case "int":
+                        f = IntField.loadEntry(fs, fname, parms);
+                        break;
+
+                    case "fixedstr":
+                        f = FixedString.loadEntry(fs, fname, parms);
+                        break;
+
+                    case "fixedbuf":
+                        f = FixedBuffer.loadEntry(fs, fname, parms);
+                        break;
+
+                    case "varbuf":
+                        f = VariableBuffer.loadEntry(fs, fname, parms);
+                        break;
+
+                    case "vartable":
+                        f = VariableTable.loadEntry(fs, fname, parms);
+                        break;
+
+                    case "sizebuftable":
+                        f = SizeBufferTable.loadEntry(fs, fname, parms);
+                        break;
+
+                    default:
+                        break;
+                }
+
+            return f;
         }
 
         //---------------------------------------------------------------------

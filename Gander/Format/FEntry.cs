@@ -40,47 +40,27 @@ namespace Gander
     }
 
     //-----------------------------------------------------
-    
+
     public class FStruct : FEntry
     {
         public String name;
-        public List<FEntry> fields;
+        public List<FField> fields;
         public SymbolTable symTable;
-        
+
         public FStruct(Format _format, String _name)
             : base(_format)
         {
             name = _name;
-            fields = new List<FEntry>();
+            fields = new List<FField>();
             symTable = new SymbolTable(format.structs);
         }
 
         public override void formatEntry(SourceFile src, List<string> lines)
         {
-            foreach (FEntry field in fields)
+            foreach (FField field in fields)
             {
                 field.formatEntry(src, lines);
             }
-        }
-    }
-
-    public class StructField : FEntry
-    {
-        public String name;
-        public FStruct ftype;
-
-        public StructField(Format _format, String _name, FStruct _ftype)
-            : base(_format)
-        {
-            name = _name;
-            ftype = _ftype;
-        }
-
-        public override void formatEntry(SourceFile src, List<string> lines)
-        {
-            lines.Add("");
-            lines.Add("//" + name);
-            ftype.formatEntry(src, lines);
         }
     }
 
@@ -91,7 +71,8 @@ namespace Gander
         public FStruct structure;
         public uint value;
 
-        public FField(FStruct _struct) : base(_struct.format)
+        public FField(FStruct _struct)
+            : base(_struct.format)
         {
             structure = _struct;
         }
@@ -99,6 +80,28 @@ namespace Gander
         public uint getValue()
         {
             return value;
+        }
+    }
+
+    //-----------------------------------------------------
+
+    public class StructField : FField
+    {
+        public String name;
+        public FStruct ftype;
+
+        public StructField(FStruct _struct, String _name, FStruct _ftype)
+            : base(_struct)
+        {
+            name = _name;
+            ftype = _ftype;
+        }
+
+        public override void formatEntry(SourceFile src, List<string> lines)
+        {
+            lines.Add("");
+            lines.Add("//" + name);
+            ftype.formatEntry(src, lines);
         }
     }
 
@@ -117,7 +120,7 @@ namespace Gander
         }
 
         public static IntField loadEntry(FStruct _struct, string name, List<string> fparams)
-        {            
+        {
             int width = Int32.Parse(fparams[1].Trim());
             IntField f = new IntField(_struct, name, width);
             return f;
@@ -134,6 +137,49 @@ namespace Gander
                 value = (v << (i * 8)) + value;
             }
             s = s + "\t\t//" + name;
+            lines.Add(s);
+        }
+    }
+
+    //-----------------------------------------------------
+
+    public class FixedString : FField
+    {
+        String name;
+        String str;
+        int width;
+
+        public FixedString(FStruct _struct, String _name, int _width)
+            : base(_struct)
+        {
+            name = _name;
+            width = _width;
+        }
+
+        public static FixedString loadEntry(FStruct _struct, string name, List<string> fparams)
+        {
+            int width = Int32.Parse(fparams[1].Trim());
+            FixedString f = new FixedString(_struct, name, width);
+            return f;
+        }
+
+        public override void formatEntry(SourceFile src, List<string> lines)
+        {
+            string s = src.getPos().ToString("X6");
+            str = "";
+            for (int i = 0; i < width; i++)
+            {
+                uint v = src.getOne();
+                if (0x020 <= v && v <= 0x7f)
+                {
+                    str = str + (char)v;
+                }
+                else
+                {
+                    str = str + '\\' + v.ToString("X2");
+                }
+            }
+            s = s + ":\"" + str + "\"\t\t//" + name;
             lines.Add(s);
         }
     }
@@ -224,49 +270,6 @@ namespace Gander
         }
     }
 
-        //-----------------------------------------------------
-
-    public class FixedString : FField
-    {
-        String name;
-        String str;
-        int width;
-
-        public FixedString(FStruct _struct, String _name, int _width)
-            : base(_struct)
-        {
-            name = _name;
-            width = _width;
-        }
-
-        public static FixedString loadEntry(FStruct _struct, string name, List<string> fparams)
-        {
-            int width = Int32.Parse(fparams[1].Trim());
-            FixedString f = new FixedString(_struct, name, width);
-            return f;
-        }
-
-        public override void formatEntry(SourceFile src, List<string> lines)
-        {
-            string s = src.getPos().ToString("X6");
-            str = "";
-            for (int i = 0; i < width; i++)
-            {
-                uint v = src.getOne();
-                if (0x020 <= v && v <= 0x7f)
-                {
-                    str = str + (char)v;
-                }
-                else
-                {
-                    str = str + '\\' + v.ToString("X2");
-                }
-            }
-            s = s + ":\"" + str + "\"\t\t//" + name;
-            lines.Add(s);
-        }
-    }
-
     //-------------------------------------------------------------------------
 
     public class VariableTable : FField
@@ -288,7 +291,7 @@ namespace Gander
             String delim = parms[1].Trim();
             FStruct fs = (FStruct)_struc.format.structs.getEntry(parms[2].Trim());
             VariableTable f = new VariableTable(_struc, name, delim, fs);
-            return f;            
+            return f;
         }
 
         public override void formatEntry(SourceFile src, List<string> lines)
@@ -317,7 +320,7 @@ namespace Gander
             : base(_struc)
         {
             name = _name;
-            delim = _delim;            
+            delim = _delim;
         }
 
         public static SizeBufferTable loadEntry(FStruct _struc, String name, List<string> parms)
@@ -331,5 +334,5 @@ namespace Gander
         {
         }
     }
-    
+
 }
